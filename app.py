@@ -1,14 +1,28 @@
-"""닭의 목을 비틀어도 새벽은 온다 — 나무위키 페이지 컨셉 투자자 서한 뷰어."""
+"""닭의 목을 비틀어도 새벽은 온다 — 위키 문서 형식 투자자 서한 뷰어."""
+import base64
 import re
 from pathlib import Path
 
 import streamlit as st
 
-LETTER = Path(__file__).parent / "letter.md"
-LAST_EDIT = "2026-08-07 23:40:12"
+ROOT = Path(__file__).parent
+LETTER = ROOT / "letter.md"
+LAST_EDIT = "2026-08-08 00:10:00"
 CATEGORIES = ["반도체", "메모리 반도체", "투자", "2026년 주식시장", "투자자 서한"]
 
-st.set_page_config(page_title="닭의 목을 비틀어도 새벽은 온다 - 무나위키", page_icon="🌳", layout="centered")
+st.set_page_config(page_title="닭의 목을 비틀어도 새벽은 온다", page_icon="📄", layout="centered")
+
+
+def embed_image(alt: str, src: str) -> str:
+    path = ROOT / src
+    if not path.exists():
+        return f"<p class='wiki-p'>[이미지 없음: {src}]</p>"
+    b64 = base64.b64encode(path.read_bytes()).decode()
+    ext = path.suffix.lstrip(".").lower() or "png"
+    return (
+        f"<div class='wiki-img'><img src='data:image/{ext};base64,{b64}' alt='{alt}'>"
+        f"<div class='img-cap'>{alt}</div></div>"
+    )
 
 
 def inline(text: str) -> str:
@@ -78,6 +92,10 @@ def parse(md: str):
             continue
         if line == "---":
             continue
+        m_img = re.match(r"^!\[(.*?)\]\((.*?)\)$", line)
+        if m_img:
+            out.append(embed_image(m_img.group(1), m_img.group(2)))
+            continue
         if line.startswith("# "):
             title = line[2:]
             continue
@@ -125,15 +143,8 @@ CSS = """
 .block-container {padding-top: 0.5rem; max-width: 1060px;}
 html, body, [class*="css"] {font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;}
 
-.nv-bar {background:#00A495; color:#fff; padding:10px 18px; border-radius:4px;
-  display:flex; align-items:center; gap:14px; margin-bottom:14px;}
-.nv-brand {font-size:20px; font-weight:800; letter-spacing:-0.5px;}
-.nv-search {flex:1; max-width:340px; background:rgba(255,255,255,.92); border-radius:3px;
-  padding:5px 10px; color:#888; font-size:13px; border:none;}
-.nv-menu {margin-left:auto; font-size:13px; opacity:.9;}
-
 .doc-title {font-size:32px; font-weight:700; border-bottom:1px solid #ccc;
-  padding-bottom:6px; margin:4px 0 2px 0; letter-spacing:-1px;}
+  padding-bottom:6px; margin:14px 0 2px 0; letter-spacing:-1px;}
 .doc-sub {color:#666; font-size:14px; margin-bottom:2px;}
 .last-edit {text-align:right; color:#888; font-size:12.5px; margin-bottom:8px;}
 .cats {border:1px solid #ccc; border-radius:3px; padding:6px 10px; font-size:13px;
@@ -172,8 +183,9 @@ html, body, [class*="css"] {font-family: -apple-system, BlinkMacSystemFont, "Seg
 .wiki-ul {font-size:14px; line-height:1.85; color:#333;}
 code {background:#f1f3f5; border-radius:3px; padding:1px 5px; font-size:13px;}
 
-.foot {border-top:1px solid #ccc; margin-top:40px; padding-top:10px;
-  color:#888; font-size:12.5px; line-height:1.8;}
+.wiki-img {text-align:center; margin:16px 0;}
+.wiki-img img {max-width:100%; border:1px solid #ddd; border-radius:3px;}
+.img-cap {color:#888; font-size:12.5px; margin-top:4px;}
 </style>
 """
 
@@ -183,12 +195,6 @@ def main():
     title, subtitle, body, toc = parse(md)
 
     st.markdown(CSS, unsafe_allow_html=True)
-    st.markdown(
-        "<div class='nv-bar'><span class='nv-brand'>🌳 무나위키</span>"
-        "<span class='nv-search'>🔍 여기에서 검색</span>"
-        "<span class='nv-menu'>최근 변경 · 무작위 · 특수 기능</span></div>",
-        unsafe_allow_html=True,
-    )
     st.markdown(f"<div class='doc-title'>{title}</div>", unsafe_allow_html=True)
     st.markdown(f"<div class='doc-sub'>{subtitle}</div>", unsafe_allow_html=True)
     st.markdown(f"<div class='last-edit'>최근 수정 시각: {LAST_EDIT}</div>", unsafe_allow_html=True)
@@ -209,12 +215,6 @@ def main():
         unsafe_allow_html=True,
     )
     st.markdown(body, unsafe_allow_html=True)
-    st.markdown(
-        "<div class='foot'>이 문서의 내용 중 전체 또는 일부는 개인의 사적 기록이며, "
-        "실제 나무위키와 무관한 페이지 컨셉 오마주입니다.<br>"
-        "무나위키는 백과사전이 아니며 검증되지 않았거나, 편향적이거나, 잘못된 서술이 있을 수 있습니다.</div>",
-        unsafe_allow_html=True,
-    )
 
 
 if __name__ == "__main__":

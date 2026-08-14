@@ -1,4 +1,4 @@
-"""닭의 목을 비틀어도 새벽은 온다 — 위키 문서 형식 투자자 서한 뷰어."""
+"""닭의 목을 비틀어도 새벽은 온다 — 위키 문서 형식 뷰어."""
 import base64
 import re
 from pathlib import Path
@@ -8,7 +8,7 @@ import streamlit as st
 ROOT = Path(__file__).parent
 LETTER = ROOT / "letter.md"
 LAST_EDIT = "2026-08-08 00:10:00"
-CATEGORIES = ["반도체", "메모리 반도체", "투자", "2026년 주식시장", "투자자 서한"]
+CATEGORIES = ["반도체", "메모리 반도체", "투자", "2026년 주식시장", "장기투자"]
 
 st.set_page_config(page_title="닭의 목을 비틀어도 새벽은 온다", page_icon="📄", layout="centered")
 
